@@ -14,7 +14,111 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      incidents: {
+        Row: {
+          assigned_technician: string | null
+          assignment_reason: string | null
+          category: string
+          created_at: string
+          created_by: string | null
+          description: string
+          id: string
+          incident_id: string
+          location: string
+          priority: string
+          required_skill: string | null
+          sop_steps: string[] | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_technician?: string | null
+          assignment_reason?: string | null
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          id?: string
+          incident_id: string
+          location?: string
+          priority?: string
+          required_skill?: string | null
+          sop_steps?: string[] | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_technician?: string | null
+          assignment_reason?: string | null
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          id?: string
+          incident_id?: string
+          location?: string
+          priority?: string
+          required_skill?: string | null
+          sop_steps?: string[] | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      technicians: {
+        Row: {
+          availability: string
+          created_at: string
+          id: string
+          name: string
+          skill: string
+          updated_at: string
+        }
+        Insert: {
+          availability?: string
+          created_at?: string
+          id?: string
+          name: string
+          skill: string
+          updated_at?: string
+        }
+        Update: {
+          availability?: string
+          created_at?: string
+          id?: string
+          name?: string
+          skill?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
