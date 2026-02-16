@@ -6,9 +6,18 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { getIncidentById } from "@/api/mockApi";
-import { Incident, Priority } from "@/types";
+import { Incident } from "@/types";
 import { Navbar } from "@/components/Navbar";
 import { Skeleton } from "@/components/ui/skeleton";
+
+const getPriorityColor = (priority: string) => {
+  switch (priority) {
+    case "high": return "bg-destructive text-destructive-foreground";
+    case "medium": return "bg-warning text-warning-foreground";
+    case "low": return "bg-success text-success-foreground";
+    default: return "bg-muted text-muted-foreground";
+  }
+};
 
 export default function IncidentDetails() {
   const { id } = useParams<{ id: string }>();
@@ -30,17 +39,6 @@ export default function IncidentDetails() {
     };
     loadIncident();
   }, [id]);
-
-  const getPriorityColor = (priority: Priority) => {
-    switch (priority) {
-      case "high":
-        return "bg-destructive text-destructive-foreground";
-      case "medium":
-        return "bg-warning text-warning-foreground";
-      case "low":
-        return "bg-success text-success-foreground";
-    }
-  };
 
   if (isLoading) {
     return (
@@ -81,7 +79,6 @@ export default function IncidentDetails() {
           Back to History
         </Button>
 
-        {/* Main Details Card */}
         <Card className="mb-6">
           <CardHeader>
             <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
@@ -92,7 +89,7 @@ export default function IncidentDetails() {
                     {incident.priority}
                   </Badge>
                 </div>
-                <CardDescription>Incident ID: {incident.id}</CardDescription>
+                <CardDescription>Incident ID: {incident.incident_id}</CardDescription>
               </div>
               <div className="flex gap-2">
                 <Button variant="outline" className="gap-2">
@@ -130,18 +127,13 @@ export default function IncidentDetails() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Status:</span>
-                    <Badge variant="outline" className="capitalize">
-                      {incident.status}
-                    </Badge>
+                    <Badge variant="outline" className="capitalize">{incident.status}</Badge>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Created:</span>
                     <span className="font-medium">
-                      {incident.createdAt.toLocaleString([], {
-                        month: "short",
-                        day: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
+                      {new Date(incident.created_at).toLocaleString([], {
+                        month: "short", day: "numeric", hour: "2-digit", minute: "2-digit",
                       })}
                     </span>
                   </div>
@@ -153,16 +145,16 @@ export default function IncidentDetails() {
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Assigned To:</span>
-                    <span className="font-medium">{incident.assignedTechnician || "Unassigned"}</span>
+                    <span className="font-medium">{incident.assigned_technician || "Unassigned"}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Required Skill:</span>
-                    <span className="font-medium capitalize">{incident.requiredSkill || "N/A"}</span>
+                    <span className="font-medium capitalize">{incident.required_skill || "N/A"}</span>
                   </div>
-                  {incident.assignmentReason && (
+                  {incident.assignment_reason && (
                     <div className="mt-3">
                       <span className="text-muted-foreground block mb-1">Assignment Reason:</span>
-                      <p className="text-sm bg-muted p-2 rounded-lg">{incident.assignmentReason}</p>
+                      <p className="text-sm bg-muted p-2 rounded-lg">{incident.assignment_reason}</p>
                     </div>
                   )}
                 </div>
@@ -171,8 +163,7 @@ export default function IncidentDetails() {
           </CardContent>
         </Card>
 
-        {/* SOP Steps Card */}
-        {incident.sopSteps && incident.sopSteps.length > 0 && (
+        {incident.sop_steps && incident.sop_steps.length > 0 && (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -183,7 +174,7 @@ export default function IncidentDetails() {
             </CardHeader>
             <CardContent>
               <ol className="space-y-3">
-                {incident.sopSteps.map((step, index) => (
+                {incident.sop_steps.map((step, index) => (
                   <li key={index} className="flex gap-3">
                     <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-sm">
                       {index + 1}

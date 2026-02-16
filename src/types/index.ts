@@ -8,22 +8,26 @@ export interface Technician {
   name: string;
   skill: string;
   availability: Availability;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Incident {
   id: string;
+  incident_id: string;
   title: string;
   description: string;
   location: string;
-  category: Category;
-  priority: Priority;
-  status: Status;
-  assignedTechnician?: string;
-  assignmentReason?: string;
-  requiredSkill?: string;
-  sopSteps?: string[];
-  createdAt: Date;
-  updatedAt: Date;
+  category: string;
+  priority: string;
+  status: string;
+  assigned_technician?: string | null;
+  assignment_reason?: string | null;
+  required_skill?: string | null;
+  sop_steps?: string[] | null;
+  created_by?: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface ChatMessage {

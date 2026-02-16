@@ -10,7 +10,24 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useIncidents } from "@/context/IncidentContext";
 import { Navbar } from "@/components/Navbar";
 import { TableSkeleton } from "@/components/LoadingSkeleton";
-import { Priority, Category } from "@/types";
+
+const getPriorityColor = (priority: string) => {
+  switch (priority) {
+    case "high": return "bg-destructive text-destructive-foreground";
+    case "medium": return "bg-warning text-warning-foreground";
+    case "low": return "bg-success text-success-foreground";
+    default: return "bg-muted text-muted-foreground";
+  }
+};
+
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case "closed": return "bg-success/20 text-success-foreground border-success";
+    case "in-progress": return "bg-info/20 text-info-foreground border-info";
+    case "open": return "bg-warning/20 text-warning-foreground border-warning";
+    default: return "bg-muted text-muted-foreground";
+  }
+};
 
 export default function IncidentHistory() {
   const { incidents, isLoading } = useIncidents();
@@ -22,36 +39,12 @@ export default function IncidentHistory() {
     return incidents.filter((incident) => {
       const matchesSearch =
         incident.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        incident.id.toLowerCase().includes(searchTerm.toLowerCase());
+        incident.incident_id.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesPriority = filterPriority === "all" || incident.priority === filterPriority;
       const matchesCategory = filterCategory === "all" || incident.category === filterCategory;
       return matchesSearch && matchesPriority && matchesCategory;
     });
   }, [incidents, searchTerm, filterPriority, filterCategory]);
-
-  const getPriorityColor = (priority: Priority) => {
-    switch (priority) {
-      case "high":
-        return "bg-destructive text-destructive-foreground";
-      case "medium":
-        return "bg-warning text-warning-foreground";
-      case "low":
-        return "bg-success text-success-foreground";
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "closed":
-        return "bg-success/20 text-success-foreground border-success";
-      case "in-progress":
-        return "bg-info/20 text-info-foreground border-info";
-      case "open":
-        return "bg-warning/20 text-warning-foreground border-warning";
-      default:
-        return "bg-muted text-muted-foreground";
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background">
@@ -66,17 +59,10 @@ export default function IncidentHistory() {
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by title or ID..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
+              <Input placeholder="Search by title or ID..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
             </div>
             <Select value={filterPriority} onValueChange={setFilterPriority}>
-              <SelectTrigger className="w-full md:w-40">
-                <SelectValue placeholder="Priority" />
-              </SelectTrigger>
+              <SelectTrigger className="w-full md:w-40"><SelectValue placeholder="Priority" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Priorities</SelectItem>
                 <SelectItem value="high">High</SelectItem>
@@ -85,9 +71,7 @@ export default function IncidentHistory() {
               </SelectContent>
             </Select>
             <Select value={filterCategory} onValueChange={setFilterCategory}>
-              <SelectTrigger className="w-full md:w-40">
-                <SelectValue placeholder="Category" />
-              </SelectTrigger>
+              <SelectTrigger className="w-full md:w-40"><SelectValue placeholder="Category" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Categories</SelectItem>
                 <SelectItem value="electrical">Electrical</SelectItem>
@@ -103,9 +87,7 @@ export default function IncidentHistory() {
 
         <Card className="overflow-hidden">
           {isLoading ? (
-            <div className="p-6">
-              <TableSkeleton />
-            </div>
+            <div className="p-6"><TableSkeleton /></div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
@@ -123,40 +105,26 @@ export default function IncidentHistory() {
                 <TableBody>
                   {filteredIncidents.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
-                        No incidents found
-                      </TableCell>
+                      <TableCell colSpan={7} className="text-center text-muted-foreground py-8">No incidents found</TableCell>
                     </TableRow>
                   ) : (
                     filteredIncidents.map((incident) => (
                       <TableRow key={incident.id} className="hover:bg-muted/50 transition-colors">
-                        <TableCell className="font-medium">{incident.id}</TableCell>
+                        <TableCell className="font-medium">{incident.incident_id}</TableCell>
                         <TableCell className="font-medium max-w-xs truncate">{incident.title}</TableCell>
                         <TableCell>
-                          <Badge className={getPriorityColor(incident.priority)} variant="secondary">
-                            {incident.priority}
-                          </Badge>
+                          <Badge className={getPriorityColor(incident.priority)} variant="secondary">{incident.priority}</Badge>
                         </TableCell>
                         <TableCell>
-                          <Badge className={getStatusColor(incident.status)} variant="outline">
-                            {incident.status}
-                          </Badge>
+                          <Badge className={getStatusColor(incident.status)} variant="outline">{incident.status}</Badge>
                         </TableCell>
-                        <TableCell className="text-sm">{incident.assignedTechnician || "Unassigned"}</TableCell>
+                        <TableCell className="text-sm">{incident.assigned_technician || "Unassigned"}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">
-                          {incident.createdAt.toLocaleString([], {
-                            month: "short",
-                            day: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
+                          {new Date(incident.created_at).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
                         </TableCell>
                         <TableCell className="text-right">
-                          <Link to={`/incident/${incident.id}`}>
-                            <Button variant="ghost" size="sm" className="gap-2">
-                              <Eye className="h-4 w-4" />
-                              View
-                            </Button>
+                          <Link to={`/incident/${incident.incident_id}`}>
+                            <Button variant="ghost" size="sm" className="gap-2"><Eye className="h-4 w-4" />View</Button>
                           </Link>
                         </TableCell>
                       </TableRow>

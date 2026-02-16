@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { Incident, ChatMessage } from "@/types";
 import { getIncidents } from "@/api/mockApi";
+import { supabase } from "@/integrations/supabase/client";
 
 interface IncidentContextType {
   incidents: Incident[];
@@ -19,7 +20,7 @@ export const IncidentProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const refreshIncidents = async () => {
+  const refreshIncidents = useCallback(async () => {
     setIsLoading(true);
     try {
       const data = await getIncidents();
@@ -29,7 +30,7 @@ export const IncidentProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   const addIncident = (incident: Incident) => {
     setIncidents((prev) => [incident, ...prev]);
@@ -45,7 +46,23 @@ export const IncidentProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   useEffect(() => {
     refreshIncidents();
-  }, []);
+
+    // Real-time subscription for incidents
+    const channel = supabase
+      .channel("incidents-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "incidents" },
+        () => {
+          refreshIncidents();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [refreshIncidents]);
 
   return (
     <IncidentContext.Provider
