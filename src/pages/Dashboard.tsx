@@ -7,51 +7,49 @@ import { getDashboardStats } from "@/api/mockApi";
 import { DashboardStats } from "@/types";
 import { CardSkeleton } from "@/components/LoadingSkeleton";
 import { Navbar } from "@/components/Navbar";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const loadStats = async () => {
+    try {
+      const data = await getDashboardStats();
+      setStats(data);
+    } catch (error) {
+      console.error("Failed to load dashboard stats:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const loadStats = async () => {
-      try {
-        const data = await getDashboardStats();
-        setStats(data);
-      } catch (error) {
-        console.error("Failed to load dashboard stats:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
     loadStats();
+
+    // Real-time updates for dashboard stats
+    const incChannel = supabase
+      .channel("dashboard-incidents")
+      .on("postgres_changes", { event: "*", schema: "public", table: "incidents" }, () => loadStats())
+      .subscribe();
+
+    const techChannel = supabase
+      .channel("dashboard-technicians")
+      .on("postgres_changes", { event: "*", schema: "public", table: "technicians" }, () => loadStats())
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(incChannel);
+      supabase.removeChannel(techChannel);
+    };
   }, []);
 
   const statCards = stats
     ? [
-        {
-          title: "Total Incidents Today",
-          value: stats.totalIncidents,
-          icon: TrendingUp,
-          color: "text-info",
-        },
-        {
-          title: "High-Priority Incidents",
-          value: stats.highPriorityIncidents,
-          icon: AlertCircle,
-          color: "text-destructive",
-        },
-        {
-          title: "Technicians Available",
-          value: stats.availableTechnicians,
-          icon: Users,
-          color: "text-success",
-        },
-        {
-          title: "Avg Resolution Time",
-          value: stats.avgResolutionTime,
-          icon: Clock,
-          color: "text-warning",
-        },
+        { title: "Total Incidents Today", value: stats.totalIncidents, icon: TrendingUp, color: "text-info" },
+        { title: "High-Priority Incidents", value: stats.highPriorityIncidents, icon: AlertCircle, color: "text-destructive" },
+        { title: "Technicians Available", value: stats.availableTechnicians, icon: Users, color: "text-success" },
+        { title: "Avg Resolution Time", value: stats.avgResolutionTime, icon: Clock, color: "text-warning" },
       ]
     : [];
 
@@ -89,18 +87,10 @@ export default function Dashboard() {
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {isLoading ? (
-            <>
-              <CardSkeleton />
-              <CardSkeleton />
-              <CardSkeleton />
-              <CardSkeleton />
-            </>
+            Array.from({ length: 4 }).map((_, i) => <CardSkeleton key={i} />)
           ) : (
             statCards.map((stat, index) => (
-              <Card
-                key={index}
-                className="group hover:shadow-lg transition-all duration-300 hover:scale-105 border-border/50"
-              >
+              <Card key={index} className="group hover:shadow-lg transition-all duration-300 hover:scale-105 border-border/50">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground">{stat.title}</CardTitle>
                   <stat.icon className={`h-5 w-5 ${stat.color} group-hover:scale-110 transition-transform`} />
